@@ -8,6 +8,10 @@ defineProps({
     type: Boolean,
     required: true,
   },
+  selectedPost: {
+    type: Object,
+    required: false,
+  }
 });
 
 defineEmits(['add-post', 'open-post', 'close-post']);
@@ -43,11 +47,20 @@ defineEmits(['add-post', 'open-post', 'close-post']);
             <td>{{ post.id }}</td>
             <td>{{ post.title }}</td>
             <td class="has-text-right is-vcentered">
-              <button type="button" 
+              <button type="button"
+                v-if="!selectedPost || selectedPost.id !== post.id"
                 class="button is-link"
+                :class="{ 'is-light': !selectedPost || selectedPost.id !== post.id }"
                 @click="$emit('open-post', post)"
               >
                 Open
+              </button>
+              <button type="button" 
+                v-else
+                class="button is-link"
+                @click="$emit('close-post', post)"
+              >
+                Close
               </button>
             </td>
           </tr>

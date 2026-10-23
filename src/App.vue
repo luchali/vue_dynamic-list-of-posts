@@ -92,6 +92,13 @@ const handleOpenPost = (post) => {
   isSidebarOpen.value = true;
 };
 
+const handleClosePost = (post) => {
+  console.log('Закрити пост:', post);
+  selectedPost.value = null;
+  isCreatingPost.value = false;
+  isSidebarOpen.value = false;
+};
+
 </script>
 
 <template>
@@ -117,8 +124,11 @@ const handleOpenPost = (post) => {
     <div class="posts-layout is-flex is-justify-content-space-between">
       <PostsList :posts="posts"
       :is-sidebar-open="isSidebarOpen"
+      :selected-post="selectedPost"
       @add-post="handleAddPost" 
-      @open-post="handleOpenPost" />
+      @open-post="handleOpenPost" 
+      @close-post="handleClosePost"
+      />
 
     <Sidebar :is-open="isSidebarOpen">
         <PostForm
