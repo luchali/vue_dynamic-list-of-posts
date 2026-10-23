@@ -6,6 +6,7 @@
         required: true
     }
     });
+  const emit = defineEmits(['logout']);
 </script>
 
 <template>
@@ -17,10 +18,10 @@
     <div class="navbar-item">
       <div class="buttons">
         <div class="mr-5 mb-2">
-          <p>User: {{this.user.name}}</p>
+          <p>User: {{user.name}}</p>
         </div>
 
-        <a class="button is-light"> Logout </a>
+        <a class="button is-light" @click="emit('logout')"> Logout </a>
       </div>
     </div>
   </div>

@@ -26,7 +26,7 @@ const handleSubmit = () => {
 <template>
 <section class="container is-flex is-justify-content-center">
   <form @submit.prevent="handleSubmit" class="box mt-5">
-    <h1 class="title is-3">You need to register"</h1>
+    <h1 class="title is-3">You need to register</h1>
 
     <div class="field">
       <label class="label" for="user-email"> Email </label>
