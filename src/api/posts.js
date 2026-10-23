@@ -11,3 +11,13 @@ export const getPostById = async (id) => {
 
   return data;
 };
+
+export const createPost = async ({ userId, title, body }) => {
+  const { data } = await client.post('/posts', {
+    userId,
+    title,
+    body,
+  });
+
+  return data;
+};

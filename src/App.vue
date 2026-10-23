@@ -6,7 +6,7 @@ import NeedToRegister from './components/NeedToRegister.vue';
 import AppHeader from './components/AppHeader.vue';
 import { getUserByEmail, createUser } from './api/users.js';
 import PostsList from './components/PostsList.vue';
-import { getPosts } from './api/posts.js';
+import { getPosts, createPost } from './api/posts.js';
 import Sidebar from './components/Sidebar.vue';
 import PostForm from './components/PostForm.vue';
 import PostPreview from './components/PostPreview.vue';
@@ -99,6 +99,23 @@ const handleClosePost = (post) => {
   isSidebarOpen.value = false;
 };
 
+const handleCreatePost = async ({ title, body }) => {
+  try {
+    const newPost = await createPost({
+      userId: user.value.id,
+      title,
+      body,
+    });
+
+    posts.value = [...posts.value, newPost];
+
+    selectedPost.value = newPost;
+    isCreatingPost.value = false;
+    isSidebarOpen.value = true;
+  } catch (error) {
+    console.error(error);
+  }
+};
 </script>
 
 <template>
@@ -133,6 +150,8 @@ const handleClosePost = (post) => {
     <Sidebar :is-open="isSidebarOpen">
         <PostForm
             v-if="isCreatingPost"
+            @create-post="handleCreatePost"
+            @cancel="handleClosePost"
         />
 
         <PostPreview
