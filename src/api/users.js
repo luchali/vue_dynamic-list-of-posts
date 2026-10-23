@@ -1,4 +1,4 @@
-import { client } from '@/utils/http';
+import { client } from '../utils/http';
 
 export const getUsers = async () => {
   const response = await client.get('/users');

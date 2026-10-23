@@ -3,15 +3,21 @@ defineProps({
   posts: {
     type: Array,
     required: true
-  }
+  }, 
+  isSidebarOpen: {
+    type: Boolean,
+    required: true,
+  },
 });
 
-// Визначаємо події для кнопок
-defineEmits(['add-post', 'open-post']);
+defineEmits(['add-post', 'open-post', 'close-post']);
 </script>
 
 <template>
-<div class="tile is-parent">
+ <div
+    class="PostsList tile is-parent"
+    :class="{ 'PostsList--half': isSidebarOpen }"
+  >
   <div class="tile is-child box is-success">
     <div class="block">
       <div class="block is-flex is-justify-content-space-between">
@@ -23,7 +29,8 @@ defineEmits(['add-post', 'open-post']);
         Add New Post</button>
       </div>
 
-      <table class="table is-fullwidth is-striped is-hoverable is-narrow">
+      <table v-if="posts.length"
+      class="table is-fullwidth is-striped is-hoverable is-narrow">
         <thead>
           <tr class="has-background-link-light">
             <th>ID</th>
@@ -46,10 +53,26 @@ defineEmits(['add-post', 'open-post']);
           </tr>
         </tbody>
       </table>
+
+      <p
+        v-else
+        class="has-text-centered py-4"
+      >
+        No posts yet.
+      </p>
     </div>
   </div>
 </div>
 
 </template>
 
-<style scoped></style>
+<style scoped>
+.PostsList {
+  width: 100%;
+  transition: width 0.5s ease-in-out;
+}
+
+.PostsList--half {
+  width: 50%;
+}
+</style>
