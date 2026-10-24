@@ -21,3 +21,12 @@ export const createPost = async ({ userId, title, body }) => {
 
   return data;
 };
+
+export const updatePost = async ({ id, title, body }) => {
+  const { data } = await client.patch(`/posts/${id}`, {
+    title,
+    body,
+  });
+
+  return data;
+};

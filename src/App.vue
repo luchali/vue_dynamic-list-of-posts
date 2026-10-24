@@ -6,7 +6,7 @@ import NeedToRegister from './components/NeedToRegister.vue';
 import AppHeader from './components/AppHeader.vue';
 import { getUserByEmail, createUser } from './api/users.js';
 import PostsList from './components/PostsList.vue';
-import { getPosts, createPost } from './api/posts.js';
+import { getPosts, createPost, updatePost } from './api/posts.js';
 import Sidebar from './components/Sidebar.vue';
 import PostForm from './components/PostForm.vue';
 import PostPreview from './components/PostPreview.vue';
@@ -19,6 +19,7 @@ const posts = ref([]);
 const isSidebarOpen = ref(false);
 const selectedPost = ref(null);
 const isCreatingPost = ref(false);
+const isEditingPost = ref(false);
 
 const errorMessage = ref('');
 const loadPosts = async () => {
@@ -116,6 +117,35 @@ const handleCreatePost = async ({ title, body }) => {
     console.error(error);
   }
 };
+
+const handleEditPost = (post) => {
+  console.log('Редагувати пост:', post);
+  isEditingPost.value = true;
+};
+
+const handleSavePost = async ({ title, body }) => {
+  try {
+    const updatedPost = await updatePost({
+      id: selectedPost.value.id,
+      title,
+      body,
+    });
+
+    posts.value = posts.value.map(post =>
+      post.id === updatedPost.id ? updatedPost : post
+    );
+
+    selectedPost.value = updatedPost;
+    isEditingPost.value = false;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const handleDeletePost = (post) => {
+  console.log('Видалити пост:', post);
+  // Тут можна реалізувати логіку видалення поста
+};
 </script>
 
 <template>
@@ -154,9 +184,18 @@ const handleCreatePost = async ({ title, body }) => {
             @cancel="handleClosePost"
         />
 
+        <PostForm
+            v-else-if="isEditingPost"
+            :post="selectedPost"
+            @save-post="handleSavePost"
+            @cancel="isEditingPost = false"
+        />
+
         <PostPreview
             v-else-if="selectedPost"
             :post="selectedPost"
+            @edit-post="handleEditPost"
+            @delete-post="handleDeletePost"
         />
     </Sidebar>
     </div>

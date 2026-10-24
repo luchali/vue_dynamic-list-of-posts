@@ -1,12 +1,28 @@
 <script setup>
 import { ref } from 'vue';
 
-const emit = defineEmits(['create-post', 'cancel']);
+const props = defineProps({
+  post: {
+    type: Object,
+    default: null,
+  },
+});
 
-const title = ref('');
-const body = ref('');
+const title = ref(props.post?.title ?? '');
+const body = ref(props.post?.body ?? '');
+
+const emit = defineEmits(['create-post', 'save-post', 'cancel']);
 
 const handleSubmit = () => {
+  if (props.post) {
+    emit('save-post', {
+      title: title.value,
+      body: body.value,
+    });
+
+    return;
+  }
+
   emit('create-post', {
     title: title.value,
     body: body.value,
@@ -16,10 +32,11 @@ const handleSubmit = () => {
 
 <template>
     <div class="content">
-        <h2>Create new post</h2>
+        <h2>
+            {{ post ? 'Edit post' : 'Create new post' }}
+        </h2>
 
         <form @submit.prevent="handleSubmit">
-            <!-- inputs... -->
         <div class="field">
             <label class="label">Title</label>
 
