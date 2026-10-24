@@ -1,20 +1,22 @@
 <script setup>
-import { ref } from 'vue';
+import { Comment, ref } from 'vue';
 import LoginForm from './components/LoginForm.vue';
 import WriteCommentBtn from './components/writeCommentBtn.vue';
 import NeedToRegister from './components/NeedToRegister.vue';
 import AppHeader from './components/AppHeader.vue';
 import { getUserByEmail, createUser } from './api/users.js';
 import PostsList from './components/PostsList.vue';
-import { getPosts, createPost, updatePost } from './api/posts.js';
+import { getPosts, createPost, updatePost, deletePost } from './api/posts.js';
 import Sidebar from './components/Sidebar.vue';
 import PostForm from './components/PostForm.vue';
 import PostPreview from './components/PostPreview.vue';
+import { getComments } from './api/comments.js';
 
 const user = ref(null);
 const loginEmail = ref('');
 const needsRegistration = ref(false);
 const posts = ref([]);
+const comments = ref([]);
 
 const isSidebarOpen = ref(false);
 const selectedPost = ref(null);
@@ -66,11 +68,11 @@ const handleRegister = async (name) => {
   }
 };
 
-// const handleWriteComment = () => {
-//   console.log('Кнопку натиснуто! Тут можна відкрити форму коментаря.');
-//   // Наприклад, можна змінити стан якоїсь змінної, щоб показати форму:
-//   // isFormVisible.value = true;
-// };
+const handleWriteComment = () => {
+  console.log('Кнопку натиснуто! Тут можна відкрити форму коментаря.');
+
+  isFormVisible.value = true;
+};
 
 const handleLogout = () => {
   user.value = null;
@@ -142,10 +144,31 @@ const handleSavePost = async ({ title, body }) => {
   }
 };
 
-const handleDeletePost = (post) => {
+const handleDeletePost = async (post) => {
   console.log('Видалити пост:', post);
-  // Тут можна реалізувати логіку видалення поста
+  try {
+    const newPost = await deletePost({
+      id: post.id,
+    });
+
+    posts.value = posts.value.filter(p => p.id !== post.id);
+
+    selectedPost.value = null;
+    isCreatingPost.value = false;
+    isSidebarOpen.value = false;
+  } catch (error) {
+    console.error(error);
+  }
 };
+
+const loadComments = async () => {
+  try {
+    comments.value = await getComments(selectedPost.value.id);
+  } catch {
+    errorMessage.value = 'Unable to load comments';
+  }
+};
+
 </script>
 
 <template>
@@ -197,10 +220,13 @@ const handleDeletePost = (post) => {
             @edit-post="handleEditPost"
             @delete-post="handleDeletePost"
         />
+
+        <WriteCommentBtn @write-comment="handleWriteComment" />
+        <NoComments v-if="selectedPost && !comments.length" />
+        <CommentItem v-for="comment in comments" :key="comment.id" :comment="comment" />
     </Sidebar>
     </div>
    </main>
-  <!-- <WriteCommentBtn @write-comment="handleWriteComment" /> -->
 </template>
 
 </template>

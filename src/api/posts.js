@@ -30,3 +30,10 @@ export const updatePost = async ({ id, title, body }) => {
 
   return data;
 };
+
+export const deletePost = async ({ id }) => {
+  const { data } = await client.delete(`/posts/${id}`);
+
+  return data;
+};
+
