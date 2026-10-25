@@ -11,9 +11,27 @@ const props = defineProps({
 const title = ref(props.post?.title ?? '');
 const body = ref(props.post?.body ?? '');
 
+const titleError = ref('');
+const bodyError = ref('');
+
 const emit = defineEmits(['create-post', 'save-post', 'cancel']);
 
 const handleSubmit = () => {
+  titleError.value = '';
+  bodyError.value = '';
+
+  if (!title.value.trim()) {
+    titleError.value = 'Title is required';
+  }
+
+  if (!body.value.trim()) {
+    bodyError.value = 'Body is required';
+  }
+
+  if (titleError.value || bodyError.value) {
+    return;
+  }
+
   if (props.post) {
     emit('save-post', {
       title: title.value,
@@ -44,10 +62,19 @@ const handleSubmit = () => {
                 <input
                     v-model="title"
                     class="input"
+                    :class="{ 'is-danger': titleError }"
                     type="text"
                     placeholder="Post title"
+                    @input="titleError = ''"
                 />
             </div>
+
+            <p
+                v-if="titleError"
+                class="help is-danger"
+                >
+                {{ titleError }}
+                </p>
         </div>
 
         <div class="field">
@@ -56,16 +83,24 @@ const handleSubmit = () => {
             <div class="control">
                 <textarea
                     v-model="body"
-                    class="input"
+                    class="textarea"
+                    :class="{ 'is-danger': bodyError }"
                     type="textarea"
                     placeholder="Post body"
+                    @input="bodyError = ''"
                 ></textarea>
             </div>
+            <p
+                v-if="bodyError"
+                class="help is-danger"
+                >
+                {{ bodyError }}
+                </p>
         </div>
 
             <div class="field is-grouped">
             <div class="control">
-                <button type="submit" class="button is-link">Save</button>
+                <button type="submit" class="button is-link">{{ post ? 'Save' : 'Create' }}</button>
             </div>
             <div class="control">
                 <button type="reset" 

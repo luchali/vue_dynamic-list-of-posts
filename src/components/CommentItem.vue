@@ -1,5 +1,4 @@
 <script setup>
-// Описуємо вхідні дані (пропси), які компонент отримує від батьківського поста
 defineProps({
   name: {
     type: String,
@@ -19,7 +18,6 @@ defineProps({
   }
 });
 
-// Визначаємо подію видалення коментаря, яку будемо передавати нагору в батьківський компонент
 defineEmits(['delete-comment']);
 </script>
 
@@ -33,7 +31,6 @@ defineEmits(['delete-comment']);
         aria-label="delete" 
         @click="$emit('delete-comment', id)"
     >
-      delete button
     </button>
   </div>
   <div class="message-body">{{ body }}</div>

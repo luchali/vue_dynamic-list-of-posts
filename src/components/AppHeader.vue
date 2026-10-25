@@ -1,5 +1,4 @@
 <script setup>
-// Якщо дані користувача передаються через пропси (Props):
     defineProps({
     user: {
         type: Object,

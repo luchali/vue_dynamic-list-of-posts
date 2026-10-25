@@ -12,10 +12,7 @@ defineProps({
   }
 });
 
-// Реактивна змінна для збереження email
 const email = ref('');
-
-// Подія для передачі email нагору в батьківський компонент
 const emit = defineEmits(['submit-form']);
 
 const handleSubmit = () => {

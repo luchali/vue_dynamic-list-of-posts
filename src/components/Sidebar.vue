@@ -38,24 +38,4 @@ defineProps({
   max-width: 50%;
   opacity: 1;
 }
-/* .Sidebar {
-  overflow: hidden;
-  opacity: 0;
-  width: 0;
-  transition-property: max-width, opacity;
-  transition-duration: 0.5s;
-  transition-timing-function: ease-in-out;
-
-  @media (min-width: 769px) {
-    max-width: 0;
-  }
-}
-
-.Sidebar--open {
-  opacity: 1;
-
-  @media (min-width: 769px) {
-    max-width: 50%;
-  }
-} */
 </style>

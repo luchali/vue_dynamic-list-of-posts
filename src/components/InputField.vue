@@ -1,9 +1,12 @@
 <script setup>
-// Визначаємо пропси, які приходять у компонент
 defineProps({
   title: {
     type: String,
     required: true
+  },
+  type: {
+    type: String,
+    default: 'text',
   },
   name: {
     type: String,
@@ -27,7 +30,6 @@ defineProps({
   }
 });
 
-// Описуємо подію для оновлення v-model
 defineEmits(['update:modelValue']);
 </script>
 
@@ -38,7 +40,7 @@ defineEmits(['update:modelValue']);
   </label>
   <div class="control has-icons-left has-icons-right">
     <input
-      type="text"
+      :type="type"
       :name="name"
       :id="`comment-author-name-${name}`"
       :placeholder="placeholder"
@@ -50,8 +52,9 @@ defineEmits(['update:modelValue']);
     <span class="icon is-small is-left">
       <i class="fas fa-user"></i>
     </span>
-
+  
     <span
+      v-if="hasError"
       class="icon is-small is-right has-text-danger"
       data-cy="ErrorIcon"
     >

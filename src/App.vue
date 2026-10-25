@@ -1,5 +1,5 @@
 <script setup>
-import { Comment, ref } from 'vue';
+import { ref } from 'vue';
 import LoginForm from './components/LoginForm.vue';
 import WriteCommentBtn from './components/writeCommentBtn.vue';
 import NeedToRegister from './components/NeedToRegister.vue';
@@ -10,7 +10,11 @@ import { getPosts, createPost, updatePost, deletePost } from './api/posts.js';
 import Sidebar from './components/Sidebar.vue';
 import PostForm from './components/PostForm.vue';
 import PostPreview from './components/PostPreview.vue';
-import { getComments } from './api/comments.js';
+import { getComments, createComment, deleteComment } from './api/comments.js';
+import CommentItem from './components/CommentItem.vue';
+import NoComments from './components/NoComments.vue';
+import Loader from './components/Loader.vue';
+import CommentForm from './components/CommentForm.vue';  
 
 const user = ref(null);
 const loginEmail = ref('');
@@ -18,17 +22,31 @@ const needsRegistration = ref(false);
 const posts = ref([]);
 const comments = ref([]);
 
+const isPostsLoading = ref(false);
 const isSidebarOpen = ref(false);
 const selectedPost = ref(null);
 const isCreatingPost = ref(false);
 const isEditingPost = ref(false);
+const isCommentsLoading = ref(false);
+const isCommentFormVisible = ref(false);
+const isCommentSubmitting = ref(false);
+const commentSubmitSuccessCount = ref(0);
 
 const errorMessage = ref('');
+const postsError = ref('');
+const commentsError = ref('');
+const commentActionError = ref('');
+
 const loadPosts = async () => {
+  isPostsLoading.value = true;
+  postsError.value = '';
+
   try {
     posts.value = await getPosts(user.value.id);
   } catch {
-    errorMessage.value = 'Unable to load posts';
+    postsError.value = 'Unable to load posts';
+  } finally {
+    isPostsLoading.value = false;
   }
 };
 
@@ -71,7 +89,7 @@ const handleRegister = async (name) => {
 const handleWriteComment = () => {
   console.log('Кнопку натиснуто! Тут можна відкрити форму коментаря.');
 
-  isFormVisible.value = true;
+  isCommentFormVisible.value = true;
 };
 
 const handleLogout = () => {
@@ -86,19 +104,27 @@ const handleAddPost = () => {
   selectedPost.value = null;
   isCreatingPost.value = true;
   isSidebarOpen.value = true;
+
+  isCommentFormVisible.value = false;
 };
 
-const handleOpenPost = (post) => {
+const handleOpenPost = async (post) => {
   console.log('Відкрити пост:', post);
   selectedPost.value = post;
   isCreatingPost.value = false;
+  isEditingPost.value = false;
   isSidebarOpen.value = true;
+  isCommentFormVisible.value = false;
+
+  await loadComments();
 };
 
 const handleClosePost = (post) => {
   console.log('Закрити пост:', post);
   selectedPost.value = null;
   isCreatingPost.value = false;
+  isEditingPost.value = false;
+  isCommentFormVisible.value = false;
   isSidebarOpen.value = false;
 };
 
@@ -113,6 +139,9 @@ const handleCreatePost = async ({ title, body }) => {
     posts.value = [...posts.value, newPost];
 
     selectedPost.value = newPost;
+    comments.value = [];
+    isCommentFormVisible.value = false;
+
     isCreatingPost.value = false;
     isSidebarOpen.value = true;
   } catch (error) {
@@ -147,9 +176,7 @@ const handleSavePost = async ({ title, body }) => {
 const handleDeletePost = async (post) => {
   console.log('Видалити пост:', post);
   try {
-    const newPost = await deletePost({
-      id: post.id,
-    });
+    await deletePost(post.id);
 
     posts.value = posts.value.filter(p => p.id !== post.id);
 
@@ -162,13 +189,63 @@ const handleDeletePost = async (post) => {
 };
 
 const loadComments = async () => {
+  isCommentsLoading.value = true;
+  commentsError.value = '';
+
   try {
     comments.value = await getComments(selectedPost.value.id);
   } catch {
-    errorMessage.value = 'Unable to load comments';
+    commentsError.value = 'Unable to load comments';
+  } finally {
+    isCommentsLoading.value = false;
   }
 };
 
+const handleCreateComment = async ({
+  name,
+  email,
+  body,
+}) => {
+    isCommentSubmitting.value = true;
+    commentActionError.value = '';
+
+  try {
+    const newComment = await createComment({
+      postId: selectedPost.value.id,
+      name,
+      email,
+      body,
+    });
+
+    comments.value = [...comments.value, newComment];
+
+    commentSubmitSuccessCount.value++;
+  } catch (error) {
+    console.error(error);
+    commentActionError.value = 'Unable to add comment';
+  } finally {
+    isCommentSubmitting.value = false;
+  }
+};
+
+const handleDeleteComment = async (commentId) => {
+    const oldComments = comments.value;
+
+    commentActionError.value = '';
+
+    comments.value = comments.value.filter(
+        comment => comment.id !== commentId
+    );
+
+  try {
+    await deleteComment(commentId);
+  } catch (error) {
+    comments.value = oldComments;
+    commentActionError.value = 'Unable to delete comment';
+
+    console.error(error);
+  }
+};
 </script>
 
 <template>
@@ -192,7 +269,17 @@ const loadComments = async () => {
 
    <main class="container mt-6">
     <div class="posts-layout is-flex is-justify-content-space-between">
+      <Loader v-if="isPostsLoading" />
+
+      <div
+        v-else-if="postsError"
+        class="notification is-danger"
+        >
+        {{ postsError }}
+        </div>
+
       <PostsList :posts="posts"
+      v-else
       :is-sidebar-open="isSidebarOpen"
       :selected-post="selectedPost"
       @add-post="handleAddPost" 
@@ -214,16 +301,55 @@ const loadComments = async () => {
             @cancel="isEditingPost = false"
         />
 
-        <PostPreview
-            v-else-if="selectedPost"
-            :post="selectedPost"
-            @edit-post="handleEditPost"
-            @delete-post="handleDeletePost"
-        />
+        <template v-else-if="selectedPost">
+            <PostPreview
+                :post="selectedPost"
+                @edit-post="handleEditPost"
+                @delete-post="handleDeletePost"
+            />
 
-        <WriteCommentBtn @write-comment="handleWriteComment" />
-        <NoComments v-if="selectedPost && !comments.length" />
-        <CommentItem v-for="comment in comments" :key="comment.id" :comment="comment" />
+            <Loader v-if="isCommentsLoading" />
+
+            <div
+                v-else-if="commentsError"
+                class="notification is-danger"
+                >
+                {{ commentsError }}
+                </div>
+
+            <template v-else>
+                <NoComments v-if="!comments.length"/>
+
+                <CommentItem
+                    v-for="comment in comments"
+                    :key="comment.id"
+                    :id="comment.id"
+                    :name="comment.name"
+                    :email="comment.email"
+                    :body="comment.body"
+                    @delete-comment="handleDeleteComment"
+                />
+                
+                <div
+                v-if="commentActionError"
+                class="notification is-danger"
+                >
+                {{ commentActionError }}
+                </div>
+
+                <WriteCommentBtn
+                v-if="!isCommentFormVisible"
+                @write-comment="handleWriteComment"
+                />
+
+                <CommentForm
+                v-else
+                :is-loading="isCommentSubmitting"
+                :success-count="commentSubmitSuccessCount"
+                @submit-comment="handleCreateComment"
+                />
+        </template>
+        </template>
     </Sidebar>
     </div>
    </main>

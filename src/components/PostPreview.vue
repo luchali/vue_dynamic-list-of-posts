@@ -1,5 +1,4 @@
 <script setup>
-// Принимаем объект поста через пропсы
 defineProps({
   post: {
     type: Object,
@@ -7,7 +6,6 @@ defineProps({
   }
 });
 
-// Объявляем события для редактирования и удаления
 defineEmits(['edit-post', 'delete-post']);
 </script>
 
